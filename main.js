@@ -4,7 +4,7 @@
 
 const personasRegistradas = [
 
-    { nombre: "Diego", fechaDeNacimiento: "2024-04-10" },
+    { nombre: "Diego", fechaDeNacimiento: "2019-04-10" },
     { nombre: "Camila", fechaDeNacimiento: "2013-11-21" },
     { nombre: "Wilson", fechaDeNacimiento: "1999-06-23" },
     { nombre: "Angela", fechaDeNacimiento: "2003-01-07" }
