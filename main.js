@@ -1,104 +1,201 @@
+// Borra el contenido del localStorage al cargar la página
+localStorage.clear();
 
+const cards = [
+    [ { id: 1, value: '😀' }, { id: 2, value: '😀' }, { id: 3, value: '😡' }, { id: 4, value: '😡' } ],
+    [ { id: 5, value: '😈' }, { id: 6, value: '😈' }, { id: 7, value: '🚀' }, { id: 8, value: '🚀' } ],
+    [ { id: 9, value: '😱' }, { id: 10, value: '😱' }, { id: 11, value: '🤯' }, { id: 12, value: '🤯' } ],
+    [ { id: 13, value: '🐉' }, { id: 14, value: '🐉' }, { id: 15, value: '🐧' }, { id: 16, value: '🐧' } ],
+    [ { id: 17, value: '🐝' }, { id: 18, value: '🐝' }, { id: 19, value: '🦭' }, { id: 20, value: '🦭' } ],
+    [ { id: 21, value: '🐢' }, { id: 22, value: '🐢' }, { id: 23, value: '🦈' }, { id: 24, value: '🦈' } ]
+];
 
-// // Lista de personas con sus fechas de nacimiento
+let flippedCards = [];
+let matchedPairs = JSON.parse(localStorage.getItem('matchedPairs')) || [];
+const totalPairs = 12; // Hay 12 parejas de cartas
+let remainingTime = 180; // 3 minutos en segundos
+let intervalId = null; // Variable para guardar el identificador del intervalo
+let gameActive = true; // Variable que controla si el juego está activo o no
 
-// const personasRegistradas = [
+const gameBoard = document.getElementById('game-board');
+const timerDisplay = document.getElementById('timer');
+const divAlertaRoja = document.getElementById("alertaRoja");
+const divAlertaVerde = document.getElementById("alertaVerde");
+const reiniciarBtn = document.getElementById('reiniciar');
 
-//     { nombre: "Diego", fechaDeNacimiento: "2019-04-10" },
-//     { nombre: "Camila", fechaDeNacimiento: "2013-11-21" },
-//     { nombre: "Wilson", fechaDeNacimiento: "1999-06-23" },
-//     { nombre: "Angela", fechaDeNacimiento: "2003-01-07" }
-// ];
-
-// // Función para calcular la edad a partir de la fecha de nacimiento
-
-// function calcularEdad(fechaDeNacimiento) {
-    
-//     const fechaActual = new Date();
-//     const fechaNacimiento = new Date(fechaDeNacimiento);
-    
-//     let edad = fechaActual.getFullYear() - fechaNacimiento.getFullYear();
-    
-//     const diferenciaMes = fechaActual.getMonth() - fechaNacimiento.getMonth();
-    
-//     if (diferenciaMes < 0 || (diferenciaMes === 0 && fechaActual.getDate() < fechaNacimiento.getDate())) {
-//         edad--;
-//     }
-
-//     return edad;
-// }
-
-// // Calcular y mostrar la edad de cada persona
-
-// personasRegistradas.forEach(persona => {
-    
-//     const edad = calcularEdad(persona.fechaDeNacimiento);
-    
-//     console.log(`${persona.nombre} tiene ${edad} años.`);
-
-// });
-
-
-
-//                                 PRENTREGA #2                       //
-
-// Función para calcular la edad basado en la fecha de nacimiento
-
-function calcularEdad(fechaNacimiento) {
-    
-    // calcularEdad(): Calcula la edad de una persona en función de la fecha de nacimiento ingresada.
-    
-    let hoy = new Date();
-    let fechaNac = new Date(fechaNacimiento);
-    let edad = hoy.getFullYear() - fechaNac.getFullYear();
-    let diferenciaMeses = hoy.getMonth() - fechaNac.getMonth();
-    
-    // Si el mes de hoy es menor al mes de nacimiento o si es el mismo mes pero el día aún no ha pasado, restamos un año
-    
-    if (diferenciaMeses < 0 || (diferenciaMeses === 0 && hoy.getDate() < fechaNac.getDate())) {
-        edad--;
-    }
-    return edad;
+// Funciones alerta
+function alertaRoja(mensaje) {
+    divAlertaRoja.innerHTML = `<p>${mensaje}</p>`;
+}
+function alertaVerde(mensaje) {
+    divAlertaVerde.innerHTML = `<p>${mensaje}</p>`;
 }
 
-// Función para solicitar fechas de nacimiento y calcular las edades
+// Desactivar cartas cuando el juego se detiene
+function disableCards() {
+    gameActive = false;
+}
 
-function ingresarFechasYCalcularEdades() {
+// Habilitar cartas cuando se reinicia el juego
+function enableCards() {
+    gameActive = true;
+}
 
-    // Usa un bucle para solicitar fechas de nacimiento al usuario mediante un prompt(). 
-    // e puede detener al escribir 'salir'. Las edades calculadas se almacenan en un array de objetos, cada uno con una fecha de nacimiento y su respectiva edad.
+// Mezcla las cartas de forma individual y las agrupa nuevamente en sub-arrays de 4
+
+function shuffleAndGroup(array) {
     
-    let personas = [];
-    let continuar = true;
+    const flattened = array.flat();
+    const shuffled = flattened.sort(() => Math.random() - 0.5);
+    const grouped = [];
+    
+    
+    while (shuffled.length) {
+        grouped.push(shuffled.splice(0, 4));
+    }
+    
+    return grouped;
+}
 
-    while (continuar) {
-        let fecha = prompt("Ingrese la fecha de nacimiento (YYYY-MM-DD) o escriba 'salir' para finalizar:");
+// Cargar las cartas
+function loadGame() {
+    
+    gameBoard.innerHTML = '';
+    divAlertaRoja.innerHTML = '';
+    divAlertaVerde.innerHTML = '';
+    
+    const shuffledCards = shuffleAndGroup(cards);
+    shuffledCards.flat().forEach(card => {
         
-        if (fecha.toLowerCase() === 'salir') {
-            continuar = false;
-        } else {
-            let edad = calcularEdad(fecha);
-            personas.push({ fechaNacimiento: fecha, edad: edad });
+        
+    const cardElement = document.createElement('div');
+        cardElement.classList.add('card');
+        cardElement.dataset.id = card.id;
+        cardElement.dataset.value = card.value;
+        cardElement.textContent = '💥';
+        cardElement.addEventListener('click', flipCard);
+
+        // Mostrar las cartas que ya han sido emparejadas
+        
+        if (matchedPairs.includes(card.id)) {
+            cardElement.classList.add('matched');
+            cardElement.textContent = card.value;
         }
+
+        gameBoard.appendChild(cardElement);
+    });
+
+    enableCards(); // Permitir jugar
+    startTimer(); // Iniciar el temporizador
+}
+
+// Temporizador regresivo
+
+function startTimer() {
+    if (intervalId) {
+        clearInterval(intervalId);
     }
-    
-    return personas;
+
+    intervalId = setInterval(() => {
+        if (remainingTime <= 0) {
+            clearInterval(intervalId);
+            alertaRoja("Se acabó el tiempo");
+            disableCards(); // Desactivar las cartas
+            return;
+        }
+
+        remainingTime--;
+        updateTimerDisplay();
+    }, 1000);
 }
 
-// Función para filtrar las personas mayores a cierta edad
+// Actualizar el temporizador en pantalla
 
-function filtrarPorEdadMinima(personas, edadMinima) {
-    // Filtra el array de personas para devolver solo aquellas que tienen una edad mayor o igual a la que el usuario indique.
-    
-    return personas.filter(persona => persona.edad >= edadMinima);
+function updateTimerDisplay() {
+    const minutes = Math.floor(remainingTime / 60);
+    const seconds = remainingTime % 60;
+    timerDisplay.textContent = `Tiempo restante: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-// Ejecutar el código
+// Voltear la carta
 
-let personasIngresadas = ingresarFechasYCalcularEdades();
+function flipCard(event) {
+    if (!gameActive) return; // No hacer nada si el juego está inactivo
 
-let edadMinima = parseInt(prompt("Ingrese la edad mínima para filtrar las personas:"));
-let personasFiltradas = filtrarPorEdadMinima(personasIngresadas, edadMinima);
+    const clickedCard = event.target;
 
-console.log("Personas que cumplen con el criterio:");
-console.log(personasFiltradas);
+    if (clickedCard.classList.contains('matched') || flippedCards.includes(clickedCard)) {
+        return;
+    }
+
+    clickedCard.classList.add('flipped');
+    clickedCard.textContent = clickedCard.dataset.value;
+    flippedCards.push(clickedCard);
+
+    if (flippedCards.length === 2) {
+        checkForMatch();
+    }
+}
+
+// Verificar si las cartas coinciden
+function checkForMatch() {
+    const firstCardValue = flippedCards[0].dataset.value;
+    const secondCardValue = flippedCards[1].dataset.value;
+
+    if (firstCardValue === secondCardValue) {
+        flippedCards[0].classList.add('matched');
+        flippedCards[1].classList.add('matched');
+
+        const firstCardId = Number(flippedCards[0].dataset.id);
+        const secondCardId = Number(flippedCards[1].dataset.id);
+
+        matchedPairs.push(firstCardId);
+        matchedPairs.push(secondCardId);
+        localStorage.setItem('matchedPairs', JSON.stringify(matchedPairs));
+
+        resetTurn();
+        checkWinCondition(); // Verificar si se han encontrado todas las parejas
+    } 
+    
+    else {
+        setTimeout(() => {
+            flippedCards.forEach(card => {
+                card.classList.remove('flipped');
+                card.textContent = '💥';
+            });
+            resetTurn();
+        }, 1000);
+    }
+}
+
+// Verificar si el jugador ha encontrado todas las parejas
+
+function checkWinCondition() {
+    if (matchedPairs.length === totalPairs * 2) {
+        alertaVerde("¡Felicitaciones, has encontrado todas las parejas!");
+        clearInterval(intervalId); // Detener el temporizador
+        disableCards(); // Desactivar las cartas
+    }
+}
+
+// Resetear el turno
+
+function resetTurn() {
+    flippedCards = [];
+}
+
+// Función para reiniciar el juego
+
+function resetGame() {
+    localStorage.clear();
+    matchedPairs = [];
+    flippedCards = [];
+    remainingTime = 180; // Resetear el tiempo a 3 minutos
+    loadGame(); // Cargar el juego desde el inicio
+}
+
+// Escuchar el botón de reinicio
+reiniciarBtn.addEventListener('click', resetGame);
+
+// Iniciar el juego
+loadGame();

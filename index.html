@@ -1,12 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simuldor Js</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Juego de Memoria</title>
 </head>
 <body>
-    <h1>Simulador Interactivo JS.</h1>
-    <script src="main.js"></script>
+    <main>
+        <h1>Juego de Memoria Curso JS.</h1>
+        <div class="alertas">
+            <div id="alertaRoja"></div>
+            <div id="alertaVerde"></div>
+        </div>
+            <div class="game">
+            <div class="grid" id="game-board"></div>
+            <div class="indicativos">
+                <div id="timer">Tiempo restante: 3:00</div>
+                <button id="reiniciar">Reiniciar juego</button>
+            </div>
+        </div>
+        <script src="main.js"></script>
+    </main>
 </body>
 </html>
